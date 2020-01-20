@@ -1,0 +1,151 @@
+﻿@page "/fetchdata-fetchds"
+@using Example1.Shared
+@inject HttpClient Http
+
+<h1>Weather forecast</h1>
+
+<p>This component demonstrates fetching data from the server.</p>
+
+<p>Current count: @currentCount</p>
+
+<button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
+
+
+@if (op == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <p>Render Count: @renderCount</p>
+
+    <AgGrid WidthStyle="100%" HeightStyle="300px" Options="op" Callbacks="cb" Events="ev">
+        <GridColumn IsResizable="true" IsSortable="true" Header="ID" Field="id" />
+        <GridColumn IsResizable="true" IsSortable="true" Header="Album ID" Field="albumId" />
+        <GridColumn IsResizable="true" IsSortable="true" Header="Title" Field="title" />
+        <GridColumn IsResizable="true" IsSortable="true" Header="URL" Field="url" />
+        <GridColumn IsResizable="true" IsSortable="true" Header="Thumbnail URL" Field="thumbnailUrl" />
+
+        @RenderCount()
+    </AgGrid>
+}
+
+@code {
+    private int renderCount = 0;
+
+    private GridOptions op;
+    private GridEvents ev;
+    private GridCallbacks cb;
+
+    private int RenderCount()
+    {
+        return renderCount++;
+    }
+
+    protected override void OnInitialized()
+    {
+        op = new GridOptions
+        {
+            Datasource = new PhotosDataSource { Http = Http },
+            EnablePagination = true,
+            EnableRowDeselection = true,
+            RowModelType = RowModelType.Infinite,
+            RowSelection = RowSelection.Single,
+            SuppressCellSelection = true,
+        };
+        cb = new GridCallbacks
+        {
+            GetRowNodeId = node =>
+            {
+                var id = node.GetProperty("id").ToString();
+                Console.WriteLine($"Got node: [{id}]");
+                Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(node));
+                return $"ID#{id}";
+            },
+        };
+        ev = new GridEvents
+        {
+            SelectionChanged = (Action<RowNode[]>)(nodes =>
+            {
+                Console.WriteLine("SELECTION HAS CHANGED! " + nodes.Length);
+            }),
+        };
+    }
+
+    private int currentCount = 0;
+
+    private void IncrementCount()
+    {
+        currentCount++;
+    }
+
+    class Photo
+    {
+        // Sample:
+        //"albumId": 1,
+        //"id": 1,
+        //"title": "accusamus beatae ad facilis cum similique qui sunt",
+        //"url": "https://via.placeholder.com/600/92c952",
+        //"thumbnailUrl": "https://via.placeholder.com/150/92c952"
+
+        public int Id { get; set; }
+        public int AlbumId { get; set; }
+        public string Title { get; set; }
+        public string Url { get; set; }
+        public string ThumbnailUrl { get; set; }
+    }
+
+    class PhotosDataSource : IGridDatasource
+    {
+        public HttpClient Http { get; set; }
+
+        public async Task GetRows(IGetRowsParams getParams)
+        {
+            try
+            {
+                var url = "https://jsonplaceholder.typicode.com/photos";
+
+                // https://github.com/typicode/json-server#slice
+                url += $"?_start={getParams.StartRow}";
+                url += $"&_end={getParams.EndRow}";
+
+                if (getParams.SortModel?.Length > 0)
+                {
+                    // https://github.com/typicode/json-server#sort
+                    url += $"&_sort={string.Join(",", getParams.SortModel.Select(sm => sm.ColumnId))}";
+                    url += $"&_order={string.Join(",", getParams.SortModel.Select(sm => sm.Direction))}";
+                }
+
+                // TODO: FILTER
+
+                Console.WriteLine("Fetching from [{0}]", url);
+                var resp = await Http.GetAsync(url);
+                resp.EnsureSuccessStatusCode();
+
+                // https://github.com/typicode/json-server#slice
+                resp.Headers.TryGetValues("X-Total-Count", out var totalCountHeader);
+                var totalCount = int.TryParse(totalCountHeader?.FirstOrDefault(), out var totalCountInt)
+                    ? (int?)totalCountInt
+                    : null;
+
+                var photos = await Http.GetJsonAsync<Photo[]>(url);
+                Console.WriteLine("From [{0}:{1}], got [{2}] row(s) out of [{3}]",
+                    getParams.StartRow, getParams.EndRow, photos.Length, totalCount);
+
+                await getParams.SuccessCallback(photos, totalCount);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Failed to retrieve!");
+                Console.WriteLine(ex.ToString());
+                await getParams.FailCallback();
+            }
+        }
+
+        public Task Destroy()
+        {
+            // Nothing to do
+            return Task.CompletedTask;
+        }
+    }
+}

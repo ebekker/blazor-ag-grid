@@ -1,0 +1,7 @@
+﻿@using Microsoft.JSInterop
+@inject IJSRuntime FOO
+
+<CascadingValue Name="@nameof(GridOptions.ColumnDefinitions)" Value="@_columnDefinitions"
+    ><CascadingValue Name="@nameof(GridOptions.RowData)" Value="@_rowData"
+        >@ChildContent</CascadingValue></CascadingValue>
+<div @ref="_gridDiv" style="height: @(HeightStyle); width: @(WidthStyle);" class="ag-theme-balham"></div>
