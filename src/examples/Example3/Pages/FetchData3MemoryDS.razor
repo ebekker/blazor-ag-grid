@@ -1,0 +1,120 @@
+﻿@page "/fetchdata-memoryds"
+
+@using Example3.Data
+@inject WeatherForecastService ForecastService
+
+<h1>Weather forecast</h1>
+
+<p>This component demonstrates fetching data from the server.</p>
+
+<p>Current count: @currentCount</p>
+
+<button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
+
+@if (gridOpts == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <p>Render Count: @renderCount</p>
+
+    <AgGrid WidthStyle="100%" HeightStyle="300px" Options="gridOpts">
+        <GridColumn IsResizable="true" IsSortable="true" Header="Date" Field="date" />
+        <GridColumn IsResizable="true" IsSortable="true" Header="Temp. (C)" Field="temperatureC" />
+        <GridColumn IsResizable="true" IsSortable="true" Header="Temp. (F)" Field="temperatureF" />
+        <GridColumn IsResizable="true" IsSortable="true" Header="Summary" Field="summary" />
+
+        @RenderCount()
+    </AgGrid>
+}
+
+@code {
+    private int renderCount = 0;
+
+    private GridOptions gridOpts;
+
+    private int RenderCount()
+    {
+        return renderCount++;
+    }
+
+    protected override void OnInitialized()
+    {
+        gridOpts = new GridOptions
+        {
+            Datasource = new WeatherDataSource { Service = ForecastService },
+            RowModelType = RowModelType.Infinite,
+            EnableRowDeselection = true,
+            SuppressCellSelection = true,
+        };
+    }
+
+    private int currentCount = 0;
+
+    private void IncrementCount()
+    {
+        currentCount++;
+    }
+
+    class WeatherDataSource : IGridDatasource
+    {
+        public WeatherForecastService Service { get; set; }
+
+        private WeatherForecast[] Forecasts { get; set; }
+
+        public async Task GetRows(IGetRowsParams getParams)
+        {
+            try
+            {
+                if (Forecasts == null)
+                    Forecasts = await Service.GetForecastAsync(DateTime.Now);
+
+                var page = Forecasts
+                    .Skip(getParams.StartRow)
+                    .Take(getParams.EndRow - getParams.StartRow);
+
+                if (getParams.SortModel?.Length > 0)
+                {
+                    foreach (var sm in getParams.SortModel)
+                    {
+                        Func<WeatherForecast, object> sortKey = f =>
+                        {
+                            if (sm.ColumnId.Equals(nameof(WeatherForecast.Date), StringComparison.OrdinalIgnoreCase))
+                                return f.Date;
+                            if (sm.ColumnId.Equals(nameof(WeatherForecast.TemperatureC), StringComparison.OrdinalIgnoreCase))
+                                return f.TemperatureC;
+                            if (sm.ColumnId.Equals(nameof(WeatherForecast.TemperatureF), StringComparison.OrdinalIgnoreCase))
+                                return f.TemperatureF;
+                            if (sm.ColumnId.Equals(nameof(WeatherForecast.Summary), StringComparison.OrdinalIgnoreCase))
+                                return f.Summary;
+                            throw new NotSupportedException("sort by column ID: " + sm.ColumnId);
+                        };
+
+                        if (sm.Direction == "desc")
+                            page = page.OrderByDescending(sortKey);
+                        else
+                            page = page.OrderBy(sortKey);
+                    }
+                }
+
+                var block = page.ToArray();
+                Console.WriteLine("From {0}:{1}, got {2} row(s)",
+                    getParams.StartRow, getParams.EndRow, block.Length);
+                await getParams.SuccessCallback(block, block.Length);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Failed to retrieve!");
+                Console.WriteLine(ex.ToString());
+                await getParams.FailCallback();
+            }
+        }
+
+        public Task Destroy()
+        {
+            // Nothing to do
+            return Task.CompletedTask;
+        }
+    }
+}

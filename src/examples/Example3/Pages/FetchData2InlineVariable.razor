@@ -1,0 +1,57 @@
+﻿@page "/fetchdata-inlinevar"
+
+@using Example3.Data
+@inject WeatherForecastService ForecastService
+
+<h1>Weather forecast</h1>
+
+<p>This component demonstrates fetching data from the server.</p>
+
+<p>Current count: @currentCount</p>
+
+<button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
+
+@if (forecasts == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <p>Render Count: @renderCount</p>
+
+    <AgGrid WidthStyle="100%" HeightStyle="300px">
+        <GridColumn IsResizable="true" IsSortable="true" Header="Date" Field="date" />
+        <GridColumn IsResizable="true" IsSortable="true" Header="Temp. (C)" Field="temperatureC" />
+        <GridColumn IsResizable="true" IsSortable="true" Header="Temp. (F)" Field="temperatureF" />
+        <GridColumn IsResizable="true" IsSortable="true" Header="Summary" Field="summary" />
+
+        @foreach (var forecast in forecasts)
+        {
+            <GridRow Data="@forecast" />
+        }
+        @RenderCount()
+    </AgGrid>
+}
+
+@code {
+    private int renderCount = 0;
+
+    private WeatherForecast[] forecasts;
+
+    private int RenderCount()
+    {
+        return renderCount++;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        forecasts = await ForecastService.GetForecastAsync(DateTime.Now);
+    }
+
+    private int currentCount = 0;
+
+    private void IncrementCount()
+    {
+        currentCount++;
+    }
+}
