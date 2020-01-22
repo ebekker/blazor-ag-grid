@@ -2,16 +2,13 @@ window.blazor_ag_grid = {
     callbackMap: {}
     , renderCount: 0
     , createGrid: function (gridDiv, interopOptions, configScript) {
-
-        console.log("GOT GridOptions: " + blazor_ag_grid.util_stringify(interopOptions));
-
+        //console.log("GOT GridOptions: " + blazor_ag_grid.util_stringify(interopOptions));
         var id = interopOptions.CallbackId;
         var op = interopOptions.Options;
         var cb = interopOptions.Callbacks;
         var ev = interopOptions.Events;
         var ds = op.datasource;
-
-        console.log("JS-creating grid for [" + id + "]...");
+        //console.log("JS-creating grid for [" + id + "]...");
 
         // Remember for subsequent API calls
         blazor_ag_grid.callbackMap[id] = interopOptions;
@@ -42,7 +39,7 @@ window.blazor_ag_grid = {
         // create the grid passing in the div to use together with the columns & data we want to use
         new agGrid.Grid(gridDiv, op);
 
-        console.log("have options: " + blazor_ag_grid.util_stringify(op));
+        //console.log("have options: " + blazor_ag_grid.util_stringify(op));
     }
     , destroyGrid: function (gridDiv, id) {
         console.log("JS-destroying grid [" + id + "]...");
@@ -61,7 +58,7 @@ window.blazor_ag_grid = {
             //console.log("Wrapping GetRowNodeId handler");
             gridOptions.getRowNodeId = function (data) {
                 //console.log("gridOptions.getRowNodeId <<< " + JSON.stringify(data));
-                var id = gridCallbacks.handlers.GetRowNodeId.jsRef.invokeMethodAsync("Invoke", data);
+                var id = gridCallbacks.handlers.GetRowNodeId.jsRef.invokeMethod("Invoke", data);
                 //console.log("gridOptions.getRowNodeId >>> [" + id + "]");
                 return id;
             }
