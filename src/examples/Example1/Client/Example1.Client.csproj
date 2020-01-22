@@ -14,7 +14,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Shared\Example1.Shared.csproj" />
-    <ProjectReference Include="..\..\BlazorAgGrid\BlazorAgGrid.csproj" />
+    <ProjectReference Include="..\..\..\BlazorAgGrid\BlazorAgGrid.csproj" />
   </ItemGroup>
 
   <!-- Borrowed this from:  https://github.com/SteveSandersonMS/BlazorInputFile/blob/617b65551062b38abffcbcde154285a51db64f91/samples/Sample.WebAssembly/Sample.WebAssembly.csproj#L21 -->

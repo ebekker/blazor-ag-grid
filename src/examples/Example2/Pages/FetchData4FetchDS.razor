@@ -5,12 +5,14 @@
 
 <p>This component demonstrates fetching data from the server.</p>
 
-<p>Current count: @currentCount</p>
+<button class="btn btn-primary" @onclick="SizeToFitCols">Size-to-Fit Columns</button>
+<button class="btn btn-primary" @onclick="SizeToFitCols500">Size-to-Fit 500 Columns</button>
+<button class="btn btn-primary" @onclick="AutosizeCols">Autosize Columns</button>
+<button class="btn btn-primary" @onclick="RefreshRows">Refresh Rows</button>
+<button class="btn btn-primary" @onclick="PurgeRows">Purge Rows</button>
 
-<button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
 
-
-@if (op == null)
+@if (photoOp == null)
 {
     <p><em>Loading...</em></p>
 }
@@ -18,7 +20,7 @@ else
 {
     <p>Render Count: @renderCount</p>
 
-    <AgGrid WidthStyle="100%" HeightStyle="300px" Options="op" Callbacks="cb" Events="ev">
+    <AgGrid @ref="photoGrid" WidthStyle="100%" HeightStyle="300px" Options="photoOp" Callbacks="photoCb" Events="photoEv">
         <GridColumn IsResizable="true" IsSortable="true" Header="ID" Field="id" />
         <GridColumn IsResizable="true" IsSortable="true" Header="Album ID" Field="albumId" />
         <GridColumn IsResizable="true" IsSortable="true" Header="Title" Field="title" />
@@ -32,9 +34,10 @@ else
 @code {
     private int renderCount = 0;
 
-    private GridOptions op;
-    private GridEvents ev;
-    private GridCallbacks cb;
+    private AgGrid photoGrid;
+    private GridOptions photoOp;
+    private GridEvents photoEv;
+    private GridCallbacks photoCb;
 
     private int RenderCount()
     {
@@ -43,7 +46,7 @@ else
 
     protected override void OnInitialized()
     {
-        op = new GridOptions
+        photoOp = new GridOptions
         {
             Datasource = new PhotosDataSource { Http = Http },
             EnablePagination = true,
@@ -52,7 +55,7 @@ else
             RowSelection = RowSelection.Single,
             SuppressCellSelection = true,
         };
-        cb = new GridCallbacks
+        photoCb = new GridCallbacks
         {
             GetRowNodeId = node =>
             {
@@ -62,7 +65,7 @@ else
                 return $"ID#{id}";
             },
         };
-        ev = new GridEvents
+        photoEv = new GridEvents
         {
             SelectionChanged = (Action<RowNode[]>)(nodes =>
             {
@@ -71,11 +74,39 @@ else
         };
     }
 
-    private int currentCount = 0;
 
-    private void IncrementCount()
+
+    private async Task SizeToFitCols()
     {
-        currentCount++;
+        await photoGrid.Api.SizeColumnsToFit();
+    }
+
+    private async Task SizeToFitCols500()
+    {
+        await photoGrid.ColumnApi.SizeColumnsToFit(500);
+    }
+
+    private async Task AutosizeCols()
+    {
+        var colKeys = new[]
+        {
+            "id",
+            "albumId",
+            "title",
+            "url",
+            "thumbnailUrl",
+        };
+        await photoGrid.ColumnApi.AutoSizeColumns(colKeys);
+    }
+
+    private async Task RefreshRows()
+    {
+        await photoGrid.Api.RefreshInfiniteCache();
+    }
+
+    private async Task PurgeRows()
+    {
+        await photoGrid.Api.PurgeInfiniteCache();
     }
 
     class Photo
