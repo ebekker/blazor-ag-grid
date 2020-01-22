@@ -16,4 +16,29 @@
     <ProjectReference Include="..\..\BlazorAgGrid\BlazorAgGrid.csproj" />
   </ItemGroup>
 
+  <PropertyGroup>
+    <GHPagesRoot>$(MSBuildProjectDirectory)/../../../docs</GHPagesRoot>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <GHPagesFiles Include="$(PublishDir)/$(ProjectName)/dist/**/*.*" />
+  </ItemGroup>
+
+  <Target Name="PublishGHPages"  AfterTargets="AfterPublish">
+    <Message Importance="high" Text="Publishing output from [$(PublishDir)] to GH Pages directory." />
+    <Copy SourceFiles="@(GHPagesFiles)"
+          DestinationFiles="@(GHPagesFiles->'$(GHPagesRoot)/%(RecursiveDir)%(Filename)%(Extension)')" />
+    <Move SourceFiles="$(GHPagesRoot)/index.html"
+          DestinationFiles="$(GHPagesRoot)/404.html" />
+
+    <PropertyGroup>
+      <NoJekyll>
+        This file disables Jekyll processing so that we can serve up files with a `_` prefix.
+      </NoJekyll>
+    </PropertyGroup>
+    <WriteLinesToFile File="$(GHPagesRoot)/.nojekyll" Lines="$(NoJekyll)"
+                      Overwrite="true" />
+    <Message Importance="high" Text="GH Pages published to [$(GHPagesRoot)]" />
+  </Target>
+
 </Project>
