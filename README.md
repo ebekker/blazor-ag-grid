@@ -31,6 +31,25 @@ Here is a list of features that are currently supported:
   * cell-selection suppression
   * datasource page caching
   * row deselection
+* Grid and Column APIs
+* local JS script configuration
+* Works with both Blazor WASM and Blazor Server hosting models
+  (with some caveats)
+
+## Examples
+
+There are several [examples](src/examples) that each demonstrate
+some typical usage under different scenarios:
+
+* [Example1](src/examples/Example1) - demonstrates
+  Blazor WASM + ASP.NET Core hosted example
+* [Example2](src/examples/Example2) - similar to Example1 but this
+  is purely WASM client with no back-end.  This Example is the one
+  that is used for the [public demo](https://blog.bkkr.us/blazor-ag-grid/).
+* [Example3](src/examples/Example3) - demonstrates Blazor Server
+  hosting model.  This is an adaptation of Example1 and
+  demonstrates some of the caveats that need to be considered
+  and addressed with the Server hosting model (more details below).
 
 ## Usage
 
@@ -73,8 +92,8 @@ and child compoenents:
   * `<ColumnDefinition>`
   * `<RowData>`
 
-See the [Example1](src/Example1) and [Example2](src/Example2)
-projects for usage examples.
+See the [example projects](src/examples) as described above for
+usage examples.
 
 ## Configuration
 
@@ -115,6 +134,8 @@ of ag-Grid.
 This is currently limited to resolving a Row Node ID when you provide
 a custom Datasource.
 
+> NOTE: Grid Callbacks should ***NOT*** be used with the **Blazor Server** hosting model, see more details below.
+
 ### Grid Events
 
 The `GridEvents` class defines all supported [Events](https://www.ag-grid.com/javascript-grid-events/)
@@ -122,3 +143,63 @@ of ag-Grid.
 
 This is currently limited to being notified of a change in row
 selection.
+
+### Grid Configuration Script
+
+This component provides an optional `ConfigureScript` parameter
+to allow you to specify your own native JS configuration logic.
+
+This feature was added for scenarios where you *must* use a
+JavaScript-local routine to perform some pre-create configuration
+of the Grid Options instance.  If specified, this should be the
+name of a function scoped against the browser's `window` object
+that will be invoked with an argument of the Grid Options instance.
+
+This function will be invoked after all the other configuration
+elements above have been processed and just before the ag-Grid
+instance is created with these options.  You can use it to perform
+any final validation or mutation of the options instance, such as
+registering JS-local callbacks or event handlers.
+
+See more details below about the Blazor Server hosting model where
+this comes in handy.
+
+## Grid & Column API
+
+The Grid component exposes `Api` and `ColumnApi` properties that
+provide access to the corresponding ag-Grid APIs.
+
+Currently each of these interfaces only contain a very small
+number of sample API methods to invoke.  Right now these include
+samples for column resizing and purging/refreshing the cache used
+for the `Infinite` row model type.
+
+## Blazor Hosting Modes
+
+This component has been developed and tested to work with both
+WebAssembly and Server [hosting models](https://docs.microsoft.com/en-us/aspnet/core/blazor/hosting-models?view=aspnetcore-3.1)
+currently supported by Blazor.
+
+For Blazor WASM hosting model, all features should work as expected.
+
+However, for the Blazor Server hosting model, there are some caveats to
+consider.  When using the Blazor Server hosting model, interop
+invocations across JS/.NET runtimes ***must*** be performed
+asynchronously in both directions.  This is a necessity because in the
+Server hosting model, all interop is taking place over a SignalR
+connection and network activity inevitably incurs latency and possible
+disconnects that are not a consideration in the WASM hosting model.
+
+Therefore, anywhere this component _must_ use a synchronous invocation
+should be avoided.  Specifically, the `GridCallbacks` interface should
+not be used for the Server hosting model as this is a mechanism that
+the ag-Grid instance is calling into _your_ code to resolve some data
+and ag-Grid does not support asynchronous invocations for any of the
+callback functions.
+
+There is an _out_ for this scenario.  This Blazor compenent does
+support an optional `ConfigureScript` parameter as described above.
+As long as your logic can be specified and implementd fully in
+browser-side JS code, you can use this parameter to inject your own
+logic such as adding callbacks and event handlers on the Grid Options
+instance just before the Grid instance is created.
