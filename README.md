@@ -1,6 +1,8 @@
 # blazor-ag-grid
 Blazor-wrapped component over [ag-Grid](https://github.com/ag-grid/ag-grid).
 
+Blazor WASM demo can be found [here](https://blog.bkkr.us/blazor-ag-grid).
+
 ----
 
 This project implements a Blazor component that wraps the [ag-Grid](https://www.ag-grid.com/)

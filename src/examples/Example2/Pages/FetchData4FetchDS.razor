@@ -1,16 +1,22 @@
 ﻿@page "/fetchdata-fetchds"
 @inject HttpClient Http
 
-<h1>Weather forecast</h1>
+<h1>Sample Photo Records</h1>
 
-<p>This component demonstrates fetching data from the server.</p>
+<p>This sample demonstrates fetching data from a server using a custom Datasource.</p>
 
-<button class="btn btn-primary" @onclick="SizeToFitCols">Size-to-Fit Columns</button>
-<button class="btn btn-primary" @onclick="SizeToFitCols500">Size-to-Fit 500 Columns</button>
-<button class="btn btn-primary" @onclick="AutosizeCols">Autosize Columns</button>
-<button class="btn btn-primary" @onclick="RefreshRows">Refresh Rows</button>
-<button class="btn btn-primary" @onclick="PurgeRows">Purge Rows</button>
+<div style="margin: 5px 0; border: solid 2px blue; background-color: #ffa; padding: 10px;">
+    <i>Server backend hosted by <a href="https://jsonplaceholder.typicode.com/">JSONPlaceholder</a> - <b>thank you!</b></i>
+    <div><b>Ocassionally , the backend server may be down for maintenance or show CORS errors, please try again later.</b></div>
+</div>
 
+<div style="margin: 15px 0;">
+    <button class="btn btn-primary" @onclick="SizeToFitCols">Size-to-Fit Columns</button>
+    <button class="btn btn-primary" @onclick="SizeToFitCols500">Size-to-Fit 500 Columns</button>
+    <button class="btn btn-primary" @onclick="AutosizeCols">Autosize Columns</button>
+    <button class="btn btn-primary" @onclick="RefreshRows">Refresh Rows</button>
+    <button class="btn btn-primary" @onclick="PurgeRows">Purge Rows</button>
+</div>
 
 @if (photoOp == null)
 {
@@ -18,31 +24,20 @@
 }
 else
 {
-    <p>Render Count: @renderCount</p>
-
     <AgGrid @ref="photoGrid" WidthStyle="100%" HeightStyle="300px" Options="photoOp" Callbacks="photoCb" Events="photoEv">
         <GridColumn IsResizable="true" IsSortable="true" Header="ID" Field="id" />
         <GridColumn IsResizable="true" IsSortable="true" Header="Album ID" Field="albumId" />
         <GridColumn IsResizable="true" IsSortable="true" Header="Title" Field="title" />
         <GridColumn IsResizable="true" IsSortable="true" Header="URL" Field="url" />
         <GridColumn IsResizable="true" IsSortable="true" Header="Thumbnail URL" Field="thumbnailUrl" />
-
-        @RenderCount()
     </AgGrid>
 }
 
 @code {
-    private int renderCount = 0;
-
     private AgGrid photoGrid;
     private GridOptions photoOp;
     private GridEvents photoEv;
     private GridCallbacks photoCb;
-
-    private int RenderCount()
-    {
-        return renderCount++;
-    }
 
     protected override void OnInitialized()
     {
