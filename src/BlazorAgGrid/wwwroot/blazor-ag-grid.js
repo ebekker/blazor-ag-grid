@@ -1,66 +1,69 @@
-// This file is to show how a library package may provide JavaScript interop features
-// wrapped in a .NET API
-
-window.exampleJsFunctions = {
-  showPrompt: function (message) {
-    return prompt(message, 'Type anything here');
-  }
-};
-
-
 window.blazor_ag_grid = {
     callbackMap: {}
     , renderCount: 0
-    , createGrid: function (gridDiv, gridOptions, gridEvents, gridCallbacks, gridExtras) {
-        console.log("JS-creating grid...");
-        if (gridOptions.datasource) {
-            console.log("DS Ref: " + JSON.stringify(gridOptions.datasource));
-            blazor_ag_grid.createGrid_wrapDatasource(gridOptions, gridOptions.datasource);
+    , createGrid: function (gridDiv, interopOptions, configScript) {
+
+        console.log("GOT GridOptions: " + blazor_ag_grid.util_stringify(interopOptions));
+
+        var id = interopOptions.CallbackId;
+        var op = interopOptions.Options;
+        var cb = interopOptions.Callbacks;
+        var ev = interopOptions.Events;
+        var ds = op.datasource;
+
+        console.log("JS-creating grid for [" + id + "]...");
+
+        // Remember for subsequent API calls
+        blazor_ag_grid.callbackMap[id] = interopOptions;
+
+        if (cb) {
+            blazor_ag_grid.createGrid_wrapCallbacks(op, cb);
         }
 
-        if (gridCallbacks) {
-            blazor_ag_grid.createGrid_wrapCallbacks(gridOptions, gridCallbacks);
+        if (ev) {
+            blazor_ag_grid.createGrid_wrapEvents(op, ev);
         }
 
-        if (gridEvents) {
-            blazor_ag_grid.createGrid_wrapEvents(gridOptions, gridEvents);
+        if (ds) {
+            console.log("DS Ref: " + JSON.stringify(ds));
+            blazor_ag_grid.createGrid_wrapDatasource(op, ds);
+        }
+
+        if (configScript) {
+            if (window[configScript]) {
+                window[configScript].call(null, op);
+            }
+            else {
+                console.error("gridOptions local configScript was specified but could not be resolved; ABORTING");
+                return;
+            }
         }
 
         // create the grid passing in the div to use together with the columns & data we want to use
-        new agGrid.Grid(gridDiv, gridOptions);
-    }
-    , destroyGrid: function (gridDiv) {
-        console.log("JS-destroying grid...");
+        new agGrid.Grid(gridDiv, op);
 
-        // NOTHING TO DO FOR NOW
-        // TODO: What should we do to properly clean up resources???
+        console.log("have options: " + blazor_ag_grid.util_stringify(op));
     }
-    , createGrid_wrapDatasource: function (gridOptions, dsRef) {
-        // Need to "wrap" the data source
-        console.log("Wrapping datasource");
-        var nativeDS = {
-            destroy: function () {
-                console.log("destroying  datasource...");
-                dsRef.invokeMethodAsync('Destroy');
-            },
-            getRows: function (getRowsParams) {
-                console.log("getting rows for: " + JSON.stringify(getRowsParams));
-                var callbackId = blazor_ag_grid.util_genId();
-                blazor_ag_grid.callbackMap[callbackId] = getRowsParams;
-                getRowsParams.callbackId = callbackId;
-                console.log("mapped callback ID for ds: " + callbackId + "; " + JSON.stringify(dsRef));
-                dsRef.invokeMethodAsync('GetRows', getRowsParams);
-            }
-        };
-        gridOptions.datasource = nativeDS;
+    , destroyGrid: function (gridDiv, id) {
+        console.log("JS-destroying grid [" + id + "]...");
+
+        // TODO: What else should we do to properly clean up resources???
+
+        delete blazor_ag_grid.callbackMap[id];
+    }
+    , createGrid_wrapDatasource: function (op, ds) {
+        var nativeDS = blazor_ag_grid.util_wrapDatasource(ds);
+        op.datasource = nativeDS;
     }
     , createGrid_wrapCallbacks: function (gridOptions, gridCallbacks) {
         console.log("Got GridCallbakcs: " + JSON.stringify(gridCallbacks));
         if (gridCallbacks.handlers.GetRowNodeId) {
-            console.log("Wrapping GetRowNodeId handler");
+            //console.log("Wrapping GetRowNodeId handler");
             gridOptions.getRowNodeId = function (data) {
                 //console.log("gridOptions.getRowNodeId <<< " + JSON.stringify(data));
-                var id = gridCallbacks.handlers.GetRowNodeId.jsRef.invokeMethod("Invoke", data);
+                var id = gridCallbacks.handlers.GetRowNodeId.jsRef.invokeMethodAsync("Invoke", data);
+
+                var p = new Promise();
                 //console.log("gridOptions.getRowNodeId >>> [" + id + "]");
                 return id;
             }
@@ -73,6 +76,44 @@ window.blazor_ag_grid = {
             gridOptions.onSelectionChanged = function () {
                 blazor_ag_grid.gridOptions_onSelectionChanged(gridOptions, gridEvents);
             }
+        }
+    }
+    , gridOptions_callGridApi: function (callbackId, name, args) {
+        //console.log("getting gridOptions for [" + callbackId + "]");
+        var gridOptions = blazor_ag_grid.callbackMap[callbackId];
+        //console.log("got gridOptions: " + gridOptions);
+        var op = gridOptions.Options;
+        var api = op.api;
+        var fn = api[name]
+        //console.log("has Grid API [" + name + "]: " + fn);
+        fn.apply(api, args || []);
+    }
+    , gridOptions_callColumnApi: function (callbackId, name, args) {
+        //console.log("getting gridOptions for [" + callbackId + "]");
+        var gridOptions = blazor_ag_grid.callbackMap[callbackId];
+        //console.log("got gridOptions: " + gridOptions);
+        var op = gridOptions.Options;
+        var api = op.columnApi
+        var fn = api[name];
+        //console.log("has Column API [" + name + "]: " + fn);
+        fn.apply(api, args || []);
+    }
+    , gridOptions_setDatasource: function (callbackId, ds) {
+        //console.log("getting gridOptions for [" + callbackId + "]");
+        var gridOptions = blazor_ag_grid.callbackMap[callbackId];
+        //console.log("got gridOptions: " + gridOptions);
+        var op = gridOptions.Options;
+        var api = op.api;
+
+        if (!ds) {
+            // Simply reset with existing DS
+            console.log("Resetting DS with existing DS");
+            api.setDatasource(op.datasource);
+        }
+        else {
+            console.log("Setting DS with NEW DS");
+            var nativeDS = blazor_ag_grid.util_wrapDatasource(ds);
+            api.setDatasource(nativeDS);
         }
     }
     , gridOptions_onSelectionChanged: function (gridOptions, gridEvents) {
@@ -97,6 +138,25 @@ window.blazor_ag_grid = {
         console.log("unmapping callback: " + callbackId);
         delete blazor_ag_grid.callbackMap[callbackId];
     }
+    , util_wrapDatasource: function (ds) {
+        // Need to "wrap" the data source
+        console.log("Wrapping datasource");
+        var nativeDS = {
+            getRows: function (getRowsParams) {
+                //console.log("getting rows for: " + JSON.stringify(getRowsParams));
+                var callbackId = blazor_ag_grid.util_genId();
+                blazor_ag_grid.callbackMap[callbackId] = getRowsParams;
+                getRowsParams.callbackId = callbackId;
+                //console.log("mapped callback ID for ds: " + callbackId + "; " + JSON.stringify(dsRef));
+                ds.invokeMethodAsync('GetRows', getRowsParams);
+            },
+            destroy: function () {
+                //console.log("destroying  datasource...");
+                ds.invokeMethodAsync('Destroy');
+            }
+        };
+        return nativeDS;
+    }
     // Cycle-safe version of JSON.stringify, useful for debugging
     , util_stringify: function (obj) {
         // Note: cache should not be re-used by repeated calls to JSON.stringify.
@@ -113,6 +173,7 @@ window.blazor_ag_grid = {
             return value;
         });
         cache = null; // Enable garbage collection
+        return json;
     }
     // Maps raw Row Node objects to something safer for passing back to .NET
     , util_mapRowNode: function (n) {

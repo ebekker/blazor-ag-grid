@@ -17,6 +17,8 @@ namespace BlazorAgGrid
     [JsonConverter(typeof(InteropGridOptionsConverter))]
     internal class InteropGridOptions
     {
+        public string CallbackId { get; set; }
+
         public GridOptions Options { get; set; }
 
         public GridCallbacks Callbacks { get; set; }
@@ -36,9 +38,12 @@ namespace BlazorAgGrid
 
         public override void Write(Utf8JsonWriter writer, InteropGridOptions value, JsonSerializerOptions options)
         {
+            // Clone the existing options with some changes for our purposes
             var newOpts = new JsonSerializerOptions
             {
                 IgnoreNullValues = true,
+
+                // The following are all copied as-is
                 AllowTrailingCommas = options.AllowTrailingCommas,
                 DefaultBufferSize = options.DefaultBufferSize,
                 DictionaryKeyPolicy = options.DictionaryKeyPolicy,
@@ -50,10 +55,25 @@ namespace BlazorAgGrid
                 ReadCommentHandling = options.ReadCommentHandling,
                 WriteIndented = options.WriteIndented,
             };
+            // Copy over all the converters
             foreach (var c in options.Converters)
                 newOpts.Converters.Add(c);
 
+            // Serialize as an object
+            writer.WriteStartObject();
+            // ID
+            writer.WriteString(nameof(value.CallbackId), value.CallbackId);
+            // Inner options
+            writer.WritePropertyName(nameof(value.Options));
             JsonSerializer.Serialize(writer, value.Options, newOpts);
+            // Callbacks
+            writer.WritePropertyName(nameof(value.Callbacks));
+            JsonSerializer.Serialize(writer, value.Callbacks, newOpts);
+            // Events
+            writer.WritePropertyName(nameof(value.Events));
+            JsonSerializer.Serialize(writer, value.Events, newOpts);
+            // End-of-Object
+            writer.WriteEndObject();
         }
     }
 }

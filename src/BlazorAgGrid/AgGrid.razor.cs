@@ -25,6 +25,8 @@ namespace BlazorAgGrid
         private ElementReference _gridDiv;
 #pragma warning restore CS0649
 
+        // A unique ID is assigned to the Grid for Grid API references
+        private string _id = Guid.NewGuid().ToString();
         private bool _isRendered = false;
 
         [Parameter] public RenderFragment ChildContent { get; set; }
@@ -33,19 +35,25 @@ namespace BlazorAgGrid
         [Parameter] public GridOptions Options { get; set; }
         [Parameter] public GridEvents Events { get; set; }
         [Parameter] public GridCallbacks Callbacks { get; set; }
+        [Parameter] public string ConfigureScript { get; set; }
 
         [Inject] private IJSRuntime JS { get; set; }
+
+        public GridApi Api { get; private set; }
+        public GridColumnApi ColumnApi { get; private set; }
 
         protected override async Task OnAfterRenderAsync(bool firstRender)
         {
             if (!_isRendered)
             {
                 _isRendered = true;
-                await RenderGrid();
+                await CreateGrid();
+                Api = new GridApi(JS, _id);
+                ColumnApi = new GridColumnApi(JS, _id);
             }
         }
 
-        private async Task RenderGrid()
+        private async Task CreateGrid()
         {
             if (Options == null)
                 Options = new GridOptions();
@@ -69,22 +77,28 @@ namespace BlazorAgGrid
             // so we have to wrap the options in a class that declares a custom
             // converter which will serialize its constituent components using
             // customized serialization options
-            var interopOptions = new InteropGridOptions { Options = Options };
+            var interopOptions = new InteropGridOptions
+            {
+                CallbackId = _id,
+                Options = Options,
+                Callbacks = Callbacks,
+                Events = Events,
+            };
 
-            //Console.WriteLine("Raw       GridOpts: "
-            //    + System.Text.Json.JsonSerializer.Serialize(Options));
-            //Console.WriteLine("Sanitized GridOpts: "
-            //    + System.Text.Json.JsonSerializer.Serialize(interopOptions));
+            ////Console.WriteLine("Raw       GridOpts: "
+            ////    + System.Text.Json.JsonSerializer.Serialize(Options));
+            ////Console.WriteLine("Sanitized GridOpts: "
+            ////    + System.Text.Json.JsonSerializer.Serialize(interopOptions));
 
-            await JS.InvokeVoidAsync("blazor_ag_grid.createGrid",
-                _gridDiv, interopOptions, Events, Callbacks);
+            await JS.InvokeVoidAsync("blazor_ag_grid.createGrid", _gridDiv,
+                interopOptions, ConfigureScript);
         }
 
         public async void Dispose()
         {
             try
             {
-                await JS.InvokeVoidAsync("blazor_ag_grid.destroyGrid", _gridDiv);
+                await JS.InvokeVoidAsync("blazor_ag_grid.destroyGrid", _gridDiv, _id);
             }
             catch (Exception ex)
             {
