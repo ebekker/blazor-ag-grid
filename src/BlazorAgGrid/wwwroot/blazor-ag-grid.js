@@ -62,8 +62,6 @@ window.blazor_ag_grid = {
             gridOptions.getRowNodeId = function (data) {
                 //console.log("gridOptions.getRowNodeId <<< " + JSON.stringify(data));
                 var id = gridCallbacks.handlers.GetRowNodeId.jsRef.invokeMethodAsync("Invoke", data);
-
-                var p = new Promise();
                 //console.log("gridOptions.getRowNodeId >>> [" + id + "]");
                 return id;
             }
