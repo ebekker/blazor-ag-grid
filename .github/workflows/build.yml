@@ -98,7 +98,8 @@ jobs:
           dir -Include package* -Recurse | select FullName
           dir -Include *nupkg -Recurse | select FullName
           #dotnet nuget push -s https://nuget.pkg.github.com/ebekker/index.json -k $NUGET_AUTH_TOKEN ./package/BlazorAgGrid*.nupkg
-          dotnet nuget push package/BlazorAgGrid*.nupkg
+          $nupkg = dir package/BlazorAgGrid*.nupkg
+          dotnet nuget push ($nupkg.FullName)
 
   # push-nuget-preview:
   #   needs: build
