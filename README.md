@@ -5,6 +5,15 @@ Blazor WASM demo can be found [here](https://blog.bkkr.us/blazor-ag-grid).
 
 ----
 
+[![GitHub WorkFlow - CI](https://github.com/ebekker/blazor-ag-grid/workflows/CI/badge.svg)](https://github.com/ebekker/blazor-ag-grid/actions?CI)
+[![GitHub Release Notes (latest by date)](https://img.shields.io/github/v/release/ebekker/blazor-ag-grid)](https://github.com/ebekker/blazor-ag-grid/releases/latest)
+<!-- FUTURE when we publish to nuget.org
+[![Nuget  Release](https://img.shields.io/nuget/v/BlazorAgGrid)](https://www.nuget.org/packages/Zyborg.AWS.Lambda.Kerberos/)
+-->
+[![GitHub Preview](https://img.shields.io/badge/github%20nuget-latest%20preview-orange)](https://github.com/ebekker/blazor-ag-grid/packages/112336)
+
+---
+
 This project implements a Blazor component that wraps the [ag-Grid](https://www.ag-grid.com/)
 JavaScript data grid.
 
@@ -55,11 +64,35 @@ some typical usage under different scenarios:
 
 ## Usage
 
+Firstly, this component is still in very early stage and only being
+published as a nuget in the GitHub Package Repository (GPR).
+
+Add a nuget.config file to your project (e.g. `dotnet add nugetconfig`)
+and edit it to include the package source for this repo:
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+  <packageSources>
+    <!--To inherit the global NuGet package sources remove the <clear/> line below -->
+    <clear />
+    <add key="nuget" value="https://api.nuget.org/v3/index.json" />
+    <add key="github" value="https://nuget.pkg.github.com/ebekker/index.json" />
+  </packageSources>
+</configuration>
+```
+
+Then add the nuget to your project:
+
+```pwsh
+PS> dotnet add package BlazorAgGrid
+```
+
+### ag-Grid Assets
+
 To use this component you'll need to add a few basic resource
 references to ag-Grid assets such as CSS and JS files as described
 in the [docs](https://www.ag-grid.com/javascript-grid/#add-ag-grid-to-your-project).
-
-### ag-Grid Assets
 
 Add this to the `<head>` section of your `index.html` file.
 
