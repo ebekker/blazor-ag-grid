@@ -45,6 +45,7 @@ jobs:
           ## Export as output and ENV VARS for subsequent steps
           $versionBase = "$($vdump.Major).$($vdump.Minor).$($vdump.Patch)"
           Write-Host "Found matching Tag Version info:"
+          Write-Host "  [$versionBase]"
           Write-Host "::set-output name=version_base::$versionBase"
           Write-Host "::set-env name=VERSION_BASE::$versionBase"
 
@@ -58,6 +59,8 @@ jobs:
       - name: compile & pack
         shell: pwsh
         run: |
+          Write-Host "Version Base = [$($env:VERSION_BASE)]"
+          Write-Host "Building with version = [$($env:BUILDNUM_FOR_VERSION)]"
           dotnet build --configuration Release /p:VersionBuild=$env:BUILDNUM_FOR_VERSION
           dotnet pack  --configuration Release /p:VersionBuild=$env:BUILDNUM_FOR_VERSION
 
