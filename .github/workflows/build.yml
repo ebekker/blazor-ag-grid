@@ -15,13 +15,18 @@ jobs:
   build:
     ## For now, .NET Core SDK 3.1 is only available on Windows
     ##  https://help.github.com/en/actions/automating-your-workflow-with-github-actions/software-installed-on-github-hosted-runners
-    #runs-on: ubuntu-latest
     #runs-on: ubuntu-16.04
-    runs-on: windows-latest
+    #runs-on: windows-latest
+    runs-on: ubuntu-latest
     steps:
       - name: checkout latest
         uses: actions/checkout@v1
-      
+
+      - name: setup dotnet core sdk
+        uses: actions/setup-dotnet@v1.4.0
+        with:
+          dotnet-version: '3.1.100'
+
       - name: extract version base
         id: extract_version_base
         shell: pwsh
@@ -63,38 +68,62 @@ jobs:
           name: package
           path: src/BlazorAgGrid/bin/Release
     
-
   push-nuget-preview:
     needs: build
     if: (github.event_name == 'create')
-    runs-on: ubuntu-16.04
+    runs-on: ubuntu-latest
     steps:
       - name: download package from artifact
         uses: actions/download-artifact@v1
         with:
           name: package
 
-      - name: install nuget
-        ## Win only:
-        #uses: warrenbuckley/Setup-Nuget@v1
-        ## Linux
-        uses: olegtarasov/download-nuget@v1
+      - name: setup dotnet core sdk
+        uses: actions/setup-dotnet@v1.4.0
+        with:
+          ## As per:
+          ##  https://github.com/marketplace/actions/setup-net-core-sdk?version=v1.4.0
+          dotnet-version: '3.1.100'
+          source-url: https://nuget.pkg.github.com/ebekker/index.json
 
-      - name: register nuget repo
-        ## As per:
-        ##  https://help.github.com/en/articles/configuring-nuget-for-use-with-github-package-registry
+      - name: publish to GPR
         env:
-          #GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_TOKEN: ${{ secrets.GPR_TOKEN }}
-        run: |
-          mono $NUGET_EXE sources Add -Name "GPR" \
-            -Source "https://nuget.pkg.github.com/ebekker/index.json" \
-            -UserName ebekker -Password $GITHUB_TOKEN
-          find . -name *.nupkg
-          mono $NUGET_EXE setapikey $GITHUB_TOKEN -Source "GPR"
+          ## As per:
+          ##  https://github.com/marketplace/actions/setup-net-core-sdk?version=v1.4.0
+          NUGET_AUTH_TOKEN : ${{ secrets.GITHUB_TOKEN }}
+        run:  dotnet nuget push package/BlazorAgGrid*.nupkg
 
-      - name: publish
-        run:  mono $NUGET_EXE push package/BlazorAgGrid*.nupkg -Source GPR
+  # push-nuget-preview:
+  #   needs: build
+  #   if: (github.event_name == 'create')
+  #   runs-on: ubuntu-16.04
+  #   steps:
+  #     - name: download package from artifact
+  #       uses: actions/download-artifact@v1
+  #       with:
+  #         name: package
+
+  #     - name: install nuget
+  #       ## Win only:
+  #       #uses: warrenbuckley/Setup-Nuget@v1
+  #       ## Linux
+  #       uses: olegtarasov/download-nuget@v1
+
+  #     - name: register nuget repo
+  #       ## As per:
+  #       ##  https://help.github.com/en/articles/configuring-nuget-for-use-with-github-package-registry
+  #       env:
+  #         #GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #         GITHUB_TOKEN: ${{ secrets.GPR_TOKEN }}
+  #       run: |
+  #         mono $NUGET_EXE sources Add -Name "GPR" \
+  #           -Source "https://nuget.pkg.github.com/ebekker/index.json" \
+  #           -UserName ebekker -Password $GITHUB_TOKEN
+  #         find . -name *.nupkg
+  #         mono $NUGET_EXE setapikey $GITHUB_TOKEN -Source "GPR"
+
+  #     - name: publish
+  #       run:  mono $NUGET_EXE push package/BlazorAgGrid*.nupkg -Source GPR
 
 ## Future - when publishing to NuGet.org
 #  push-nuget-release:
