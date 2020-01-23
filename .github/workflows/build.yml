@@ -97,7 +97,7 @@ jobs:
         run:  |
           $nupkg = dir package/BlazorAgGrid*.nupkg
           #dotnet nuget push ($nupkg.FullName)
-          dotnet nuget push ($nupkg.FullName) -s https://nuget.pkg.github.com/ebekker/index.json -k $NUGET_AUTH_TOKEN
+          dotnet nuget push ($nupkg.FullName) -s https://nuget.pkg.github.com/ebekker/index.json -k $env:NUGET_AUTH_TOKEN
 
   # push-nuget-preview:
   #   needs: build
