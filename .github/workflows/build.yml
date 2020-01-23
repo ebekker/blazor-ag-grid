@@ -44,7 +44,7 @@ jobs:
           Write-Host "::set-env name=VERSION_BASE::$versionBase"
 
       - name: compute build nums
-        uses: zyborg/gh-action-buildnum@v1
+        uses: zyborg/gh-action-buildnum@v1.1.0
         with:
           gist_token: ${{ secrets.GIST_TOKEN }}
           version_key: ${{ steps.extract_version_base.outputs.version_base }}
