@@ -94,11 +94,11 @@ jobs:
 
       - name: publish to GPR
         shell: pwsh
-        #run:  dotnet nuget push package/BlazorAgGrid*.nupkg
         run:  |
           dir -Include package* -Recurse | select FullName
           dir -Include *nupkg -Recurse | select FullName
-          dotnet nuget push -s https://nuget.pkg.github.com/ebekker/index.json -k $NUGET_AUTH_TOKEN ./package/BlazorAgGrid*.nupkg
+          #dotnet nuget push -s https://nuget.pkg.github.com/ebekker/index.json -k $NUGET_AUTH_TOKEN ./package/BlazorAgGrid*.nupkg
+          dotnet nuget push package/BlazorAgGrid*.nupkg
 
   # push-nuget-preview:
   #   needs: build
