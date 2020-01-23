@@ -84,7 +84,8 @@ jobs:
         ## As per:
         ##  https://help.github.com/en/articles/configuring-nuget-for-use-with-github-package-registry
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          #GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GPR_TOKEN }}
         run: |
           mono $NUGET_EXE sources Add -Name "GPR" \
             -Source "https://nuget.pkg.github.com/ebekker/index.json" \
