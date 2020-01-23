@@ -76,9 +76,9 @@ jobs:
 
       - name: install nuget
         ## Win only:
-        uses: warrenbuckley/Setup-Nuget@v1
+        #uses: warrenbuckley/Setup-Nuget@v1
         ## Linux
-        #uses: olegtarasov/download-nuget@v1
+        uses: olegtarasov/download-nuget@v1
 
       - name: register nuget repo
         ## As per:
@@ -93,25 +93,26 @@ jobs:
           mono $NUGET_EXE setapikey $GITHUB_TOKEN -Source "GPR"
 
       - name: publish
-        run:  mono $NUGET_EXE push package/BlazorAgGrid*.nupkg -Source GPR 
+        run:  mono $NUGET_EXE push package/BlazorAgGrid*.nupkg -Source GPR
 
-  push-nuget-release:
-    needs: build
-    if: (github.event_name == 'release')
-    runs-on: ubuntu-16.04
-    steps:
-      - name: download package from artifact
-        uses: actions/download-artifact@v1
-        with:
-          name: package
-
-      - name: install nuget
-        ## Win only:
-        uses: warrenbuckley/Setup-Nuget@v1
-        ## Linux
-        #uses: olegtarasov/download-nuget@v1
-
-      - name: publish
-        env:
-          NUGET_TOKEN: ${{ secrets.NUGET_TOKEN }}
-        run: mono $NUGET_EXE push package/BlazorAgGrid*.nupkg -Source nuget.org -ApiKey $NUGET_TOKEN
+## Future - when publishing to NuGet.org
+#  push-nuget-release:
+#    needs: build
+#    if: (github.event_name == 'release')
+#    runs-on: ubuntu-16.04
+#    steps:
+#      - name: download package from artifact
+#        uses: actions/download-artifact@v1
+#        with:
+#          name: package
+#
+#      - name: install nuget
+#        ## Win only:
+#        #uses: warrenbuckley/Setup-Nuget@v1
+#        ## Linux
+#        uses: olegtarasov/download-nuget@v1
+#
+#      - name: publish
+#        env:
+#          NUGET_TOKEN: ${{ secrets.NUGET_TOKEN }}
+#        run: mono $NUGET_EXE push package/BlazorAgGrid*.nupkg -Source nuget.org -ApiKey $NUGET_TOKEN
