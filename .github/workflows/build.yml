@@ -13,8 +13,11 @@ on:
 jobs:
 
   build:
+    ## For now, .NET Core SDK 3.1 is only available on Windows
+    ##  https://help.github.com/en/actions/automating-your-workflow-with-github-actions/software-installed-on-github-hosted-runners
     #runs-on: ubuntu-latest
-    runs-on: ubuntu-16.04
+    #runs-on: ubuntu-16.04
+    runs-on: windows-latest
     steps:
       - name: checkout latest
         uses: actions/checkout@v1
@@ -73,8 +76,9 @@ jobs:
 
       - name: install nuget
         ## Win only:
-        #uses: warrenbuckley/Setup-Nuget@v1
-        uses: olegtarasov/download-nuget@v1
+        uses: warrenbuckley/Setup-Nuget@v1
+        ## Linux
+        #uses: olegtarasov/download-nuget@v1
 
       - name: register nuget repo
         ## As per:
@@ -103,8 +107,9 @@ jobs:
 
       - name: install nuget
         ## Win only:
-        #uses: warrenbuckley/Setup-Nuget@v1
-        uses: olegtarasov/download-nuget@v1
+        uses: warrenbuckley/Setup-Nuget@v1
+        ## Linux
+        #uses: olegtarasov/download-nuget@v1
 
       - name: publish
         env:
