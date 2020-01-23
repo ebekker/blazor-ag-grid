@@ -1,0 +1,33 @@
+<Project>
+
+    <PropertyGroup Label="Version settings">
+        <!-- these should be manually bumped as needed to
+             indicate the current version being worked on -->
+        <VersionMajor>0</VersionMajor>
+        <VersionMinor>5</VersionMinor>
+        <VersionPatch>0</VersionPatch>
+        <!-- this should be overridden by CI automation -->
+        <VersionBuild>0</VersionBuild>
+
+        <!-- fully computed semver version -->
+        <VersionPrefix Condition="'$(VersionSuffix)' == ''"
+            >$(VersionMajor).$(VersionMinor).$(VersionPatch).$(VersionBuild)</VersionPrefix>
+        <VersionPrefix Condition="'$(VersionSuffix)' != ''"
+            >$(VersionMajor).$(VersionMinor).$(VersionPatch)</VersionPrefix>
+        <VersionSuffix Condition="'$(VersionSuffix)' != ''"
+            >$(VersionSuffix)-$(VersionBuild)</VersionSuffix>
+    </PropertyGroup>
+
+    <Target Name="DumpVersions">
+        <Message Importance="High" Text='{' />
+        <Message Importance="High" Text='  "Major": "$(VersionMajor)",' />
+        <Message Importance="High" Text='  "Minor": "$(VersionMinor)",' />
+        <Message Importance="High" Text='  "Patch": "$(VersionPatch)",' />
+        <Message Importance="High" Text='  "Build": "$(VersionBuild)",' />
+        <Message Importance="High" Text='  "Prefix": "$(VersionPrefix)",' />
+        <Message Importance="High" Text='  "Suffix": "$(VersionSuffix)",' />
+        <Message Importance="High" Text='  "Version": "$(Version)"' />
+        <Message Importance="High" Text='}' />
+    </Target>
+
+</Project>

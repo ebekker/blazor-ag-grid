@@ -1,0 +1,11 @@
+<Project>
+
+  <PropertyGroup>
+    <ThisYear>$([System.DateTime]::Now.ToString("yyyy"))</ThisYear>
+    <Copyright>Copyright (C) $(ThisYear) Eugene Bekker.</Copyright>
+    <RepositoryUrl>https://github.com/ebekker/blazor-ag-grid</RepositoryUrl>
+  </PropertyGroup>
+
+  <Import Project="$([MSBuild]::NormalizePath('$(MSBuildThisFileDirectory)', 'Versions.props'))" />
+
+</Project>

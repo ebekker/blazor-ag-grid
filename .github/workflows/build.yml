@@ -1,0 +1,112 @@
+name: CI
+
+on:
+  push:
+    branches: master
+    tags-ignore: v=*
+  create:
+    tags: v=*
+  release:
+    types: [published]
+    tags: v=*
+
+jobs:
+
+  build:
+    #runs-on: ubuntu-latest
+    runs-on: ubuntu-16.04
+    steps:
+      - name: checkout latest
+        uses: actions/checkout@v1
+      
+      - name: extract version base
+        id: extract_version_base
+        shell: pwsh
+        run: |
+          ## Need to run this once to get the dotnet init message out of the way
+          dotnet msbuild ./Versions.props /t:DumpVersions /nologo
+
+          $vdumpJson = dotnet msbuild ./Versions.props /t:DumpVersions /nologo
+          Write-Output "Got Version Dump JSON:"
+          Write-Output $vdumpJson
+
+          $vdump = $vdumpJson | ConvertFrom-Json
+          Write-Output "Got Version Dump:"
+          Write-Output $vdump
+
+          ## Export as output and ENV VARS for subsequent steps
+          $versionBase = "$($vdump.Major).$($vdump.Minor).$($vdump.Patch)"
+          Write-Host "Found matching Tag Version info:"
+          Write-Host "::set-output name=version_base::$versionBase"
+          Write-Host "::set-env name=VERSION_BASE::$versionBase"
+
+      - name: compute build nums
+        uses: zyborg/gh-action-buildnum@v1
+        with:
+          gist_token: ${{ secrets.GIST_TOKEN }}
+          version_key: ${{ steps.extract_version_base.outputs.version_base }}
+          set_env: true
+
+      - name: compile & pack
+        shell: pwsh
+        run: |
+          dotnet build --configuration Release /p:VersionBuild=$env:BUILDNUM_FOR_VERSION
+          dotnet pack  --configuration Release /p:VersionBuild=$env:BUILDNUM_FOR_VERSION
+
+      - name: upload package as artifact
+        if: startsWith(github.ref, 'refs/tags/v=')
+        uses: actions/upload-artifact@v1
+        with:
+          name: package
+          path: src/BlazorAgGrid/bin/Release
+    
+
+  push-nuget-preview:
+    needs: build
+    if: (github.event_name == 'create')
+    runs-on: ubuntu-16.04
+    steps:
+      - name: download package from artifact
+        uses: actions/download-artifact@v1
+        with:
+          name: package
+
+      - name: install nuget
+        ## Win only:
+        #uses: warrenbuckley/Setup-Nuget@v1
+        uses: olegtarasov/download-nuget@v1
+
+      - name: register nuget repo
+        ## As per:
+        ##  https://help.github.com/en/articles/configuring-nuget-for-use-with-github-package-registry
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mono $NUGET_EXE sources Add -Name "GPR" \
+            -Source "https://nuget.pkg.github.com/ebekker/index.json" \
+            -UserName ebekker -Password $GITHUB_TOKEN
+          find . -name *.nupkg
+          mono $NUGET_EXE setapikey $GITHUB_TOKEN -Source "GPR"
+
+      - name: publish
+        run:  mono $NUGET_EXE push package/BlazorAgGrid*.nupkg -Source GPR 
+
+  push-nuget-release:
+    needs: build
+    if: (github.event_name == 'release')
+    runs-on: ubuntu-16.04
+    steps:
+      - name: download package from artifact
+        uses: actions/download-artifact@v1
+        with:
+          name: package
+
+      - name: install nuget
+        ## Win only:
+        #uses: warrenbuckley/Setup-Nuget@v1
+        uses: olegtarasov/download-nuget@v1
+
+      - name: publish
+        env:
+          NUGET_TOKEN: ${{ secrets.NUGET_TOKEN }}
+        run: mono $NUGET_EXE push package/BlazorAgGrid*.nupkg -Source nuget.org -ApiKey $NUGET_TOKEN
