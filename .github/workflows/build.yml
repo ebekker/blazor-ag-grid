@@ -16,8 +16,8 @@ jobs:
     ## For now, .NET Core SDK 3.1 is only available on Windows
     ##  https://help.github.com/en/actions/automating-your-workflow-with-github-actions/software-installed-on-github-hosted-runners
     #runs-on: ubuntu-16.04
-    #runs-on: windows-latest
-    runs-on: ubuntu-latest
+    #runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
       - name: checkout latest
         uses: actions/checkout@v1
@@ -74,7 +74,8 @@ jobs:
   push-nuget-preview:
     needs: build
     if: (github.event_name == 'create')
-    runs-on: ubuntu-latest
+    #runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
       - name: download package from artifact
         uses: actions/download-artifact@v1
@@ -92,10 +93,11 @@ jobs:
           NUGET_AUTH_TOKEN : ${{ secrets.GITHUB_TOKEN }}
 
       - name: publish to GPR
+        shell: pwsh
         #run:  dotnet nuget push package/BlazorAgGrid*.nupkg
         run:  |
-          find . -name package*
-          find . -name *.nupkg 
+          dir -Include package* -Recurse | select FullName
+          dir -Include *nupkg -Recurse | select FullName
           dotnet nuget push -s https://nuget.pkg.github.com/ebekker/index.json -k $NUGET_AUTH_TOKEN ./package/BlazorAgGrid*.nupkg
 
   # push-nuget-preview:
