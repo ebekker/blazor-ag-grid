@@ -89,7 +89,8 @@ jobs:
           NUGET_AUTH_TOKEN : ${{ secrets.GITHUB_TOKEN }}
 
       - name: publish to GPR
-        run:  dotnet nuget push package/BlazorAgGrid*.nupkg
+        #run:  dotnet nuget push package/BlazorAgGrid*.nupkg
+        run:  dotnet nuget push -s https://nuget.pkg.github.com/ebekker/index.json -k $NUGET_AUTH_TOKEN ./packages/*.nupkg
 
   # push-nuget-preview:
   #   needs: build
