@@ -83,6 +83,9 @@ and edit it to include the package source for this repo:
 </configuration>
 ```
 
+Note, you must also ***authenticate*** to GPR, more details can be found
+[here](https://help.github.com/en/github/managing-packages-with-github-packages/configuring-dotnet-cli-for-use-with-github-packages).
+
 Then add the nuget to your project:
 
 ```pwsh
