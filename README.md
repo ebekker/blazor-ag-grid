@@ -68,7 +68,7 @@ some typical usage under different scenarios:
 Firstly, this component is still in very early stage and only being
 published as a nuget in the GitHub Package Repository (GPR).
 
-Add a nuget.config file to your project (e.g. `dotnet add nugetconfig`)
+Add a nuget.config file to your project (e.g. `dotnet new nugetconfig`)
 and edit it to include the package source for this repo:
 
 ```xml
