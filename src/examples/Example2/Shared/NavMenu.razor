@@ -51,6 +51,8 @@
 </div>
 
 @code {
+    [CascadingParameter] public App MyApp { get; set; }
+
     private bool collapseNavMenu = true;
 
     private string NavMenuCssClass => collapseNavMenu ? "collapse" : null;

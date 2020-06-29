@@ -1,6 +1,11 @@
-﻿<Router AppAssembly="@typeof(Program).Assembly">
+﻿@using Microsoft.AspNetCore.WebUtilities
+@inject NavigationManager Nav
+
+<Router AppAssembly="@typeof(Program).Assembly">
     <Found Context="routeData">
-        <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
+        <CascadingValue Value="this">
+            <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
+        </CascadingValue>
     </Found>
     <NotFound>
         <LayoutView Layout="@typeof(MainLayout)">
@@ -8,3 +13,43 @@
         </LayoutView>
     </NotFound>
 </Router>
+
+@code {
+    public const string ModeParam = "ent";
+    public const string Community = "COMMUNITY";
+    public const string Enterprise = "ENTERPRISE";
+
+    public string CurrentMode { get; private set; } = "(n/a)";
+
+    protected override Task OnParametersSetAsync()
+    {
+        var uri = Nav.ToAbsoluteUri(Nav.Uri);
+        var qry = QueryHelpers.ParseQuery(uri.Query).ToDictionary(
+            kv => kv.Key,
+            kv => kv.Value.ToString());
+        qry.TryGetValue(ModeParam, out var entValue);
+        var ent = string.Equals("1", entValue);
+
+        CurrentMode = ent ? Enterprise : Community;
+
+        return base.OnParametersSetAsync();
+    }
+
+    public Task ToggleMode()
+    {
+        // Reconstitute without the query params
+        var link = new UriBuilder(Nav.Uri) { Query = null }.ToString();
+
+        // Toggle the value
+        var uri = Nav.ToAbsoluteUri(Nav.Uri);
+        var qry = QueryHelpers.ParseQuery(uri.Query).ToDictionary(
+            kv => kv.Key,
+            kv => kv.Value.ToString());
+        qry[ModeParam] = CurrentMode == Enterprise ? "0" : "1";
+        
+        link = QueryHelpers.AddQueryString(link, qry);
+        Nav.NavigateTo(link, forceLoad: true);
+
+        return Task.CompletedTask;
+    }
+}
