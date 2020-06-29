@@ -19,7 +19,14 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Example1.Server", "src\exam
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Example2", "src\examples\Example2\Example2.csproj", "{74106FC1-2098-49A8-B5DB-0C8E04C21045}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example3", "src\examples\Example3\Example3.csproj", "{8645AE7A-0D92-4DCA-9061-C4986D76F57A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Example3", "src\examples\Example3\Example3.csproj", "{8645AE7A-0D92-4DCA-9061-C4986D76F57A}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "misc", "misc", "{C2BF0157-2758-49D9-9EA4-48675C967EA4}"
+	ProjectSection(SolutionItems) = preProject
+		Directory.build.props = Directory.build.props
+		README.md = README.md
+		Versions.props = Versions.props
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

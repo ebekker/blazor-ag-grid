@@ -24,7 +24,8 @@
 }
 else
 {
-    <AgGrid @ref="photoGrid" WidthStyle="100%" HeightStyle="300px" Options="photoOp" Callbacks="photoCb" Events="photoEv">
+    <AgGrid @ref="photoGrid" WidthStyle="100%" HeightStyle="300px"
+            Options="photoOp" Callbacks="photoCb" Events="photoEv">
         <GridColumn IsResizable="true" IsSortable="true" Header="ID" Field="id" />
         <GridColumn IsResizable="true" IsSortable="true" Header="Album ID" Field="albumId" />
         <GridColumn IsResizable="true" IsSortable="true" Header="Title" Field="title" />

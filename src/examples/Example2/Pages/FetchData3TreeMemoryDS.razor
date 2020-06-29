@@ -1,0 +1,50 @@
+﻿@page "/fetchdata-treememoryds"
+@inject HttpClient Http
+
+<h1>Weather forecast</h1>
+
+<p>This component demonstrates local (in-memory) tree data.</p>
+
+@if (gridOpts == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <AgGrid WidthStyle="100%" HeightStyle="300px"
+            Options="gridOpts" Callbacks="gridCb">
+        <GridColumn IsResizable="true" Header="Job Title" Field="jobTitle" />
+        <GridColumn IsResizable="true" Header="Employment Type" Field="employmentType" />
+    </AgGrid>
+}
+
+@code {
+    private GridOptions gridOpts;
+    private GridCallbacks gridCb;
+
+    protected override void OnInitialized()
+    {
+        gridOpts = new GridOptions
+        {
+            EnableRowDeselection = true,
+            SuppressCellSelection = true,
+
+            TreeData = true,
+
+            // TreeData seems to be incompatible with the Infinite row
+            // model so we only support in-memory, up-front row data
+            //RowModelType = RowModelType.Infinite,
+            RowModelType = RowModelType.ClientSide,
+            RowData = EmployeeHierarchy.Employees,
+        };
+
+        gridCb = new GridCallbacks
+        {
+            GetDataPath = data =>
+            {
+                return data.GetProperty("orgHierarchy").EnumerateArray()
+                    .Select(arrayElement => arrayElement.GetString()).ToArray();
+            },
+        };
+    }
+}

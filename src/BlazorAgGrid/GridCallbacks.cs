@@ -10,5 +10,7 @@ namespace BlazorAgGrid
     public partial class GridCallbacks
     {
         public Func<JsonElement, string> GetRowNodeId { set => Set(value); }
+
+        public Func<JsonElement, string[]> GetDataPath { set => Set(value); }
     }
 }

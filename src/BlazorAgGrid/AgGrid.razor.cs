@@ -16,7 +16,7 @@ namespace BlazorAgGrid
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         };
 
-#pragma warning disable CS0649
+#pragma warning disable CS0649 // Field 'field' is never assigned to, and will always have its default value 'value'
         // These are referenced by nested components as cascading parameters
         private List<ColumnDefinition> _columnDefinitions = new List<ColumnDefinition>();
         //private RowData _rowData = new RowData();

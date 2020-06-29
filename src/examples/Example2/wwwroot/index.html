@@ -15,8 +15,24 @@
 
     <!--
       as per: https://www.ag-grid.com/javascript-grid/#add-ag-grid-to-your-project
+
+      here we pick either the community or the trial version of
+      enterprise edition which some of the example demos rely on
       -->
-    <script src="https://unpkg.com/ag-grid-community/dist/ag-grid-community.min.noStyle.js"></script>
+    <script>
+        // We use the 'ent' query param to signal enterprise
+        var searchParams = new URLSearchParams(window.location.search);
+        var isEnterprise = searchParams.get('ent') === '1';
+        if (isEnterprise) {
+            console.log("Loadding up ag-Grid ENTERPRISE!");
+            import('https://unpkg.com/ag-grid-enterprise@23.2.1/dist/ag-grid-enterprise.min.noStyle.js')
+        }
+        else {
+            console.log("Loadding up ag-Grid COMMUNITY!");
+            import('https://unpkg.com/ag-grid-community/dist/ag-grid-community.min.noStyle.js')
+        }
+    </script>
+
     <link rel="stylesheet" href="https://unpkg.com/ag-grid-community/dist/styles/ag-grid.css">
     <link rel="stylesheet" href="https://unpkg.com/ag-grid-community/dist/styles/ag-theme-balham.css">
     <script src="_content/BlazorAgGrid/blazor-ag-grid.js"></script>
