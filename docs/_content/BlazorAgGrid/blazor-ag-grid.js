@@ -37,9 +37,9 @@ window.blazor_ag_grid = {
         }
 
         // create the grid passing in the div to use together with the columns & data we want to use
+        //console.log("have options(BEF): " + blazor_ag_grid.util_stringify(op));
         new agGrid.Grid(gridDiv, op);
-
-        //console.log("have options: " + blazor_ag_grid.util_stringify(op));
+        //console.log("have options(AFT): " + blazor_ag_grid.util_stringify(op));
     }
     , destroyGrid: function (gridDiv, id) {
         console.log("JS-destroying grid [" + id + "]...");
@@ -53,7 +53,7 @@ window.blazor_ag_grid = {
         op.datasource = nativeDS;
     }
     , createGrid_wrapCallbacks: function (gridOptions, gridCallbacks) {
-        console.log("Got GridCallbakcs: " + JSON.stringify(gridCallbacks));
+        console.log("Got GridCallbacks: " + JSON.stringify(gridCallbacks));
         if (gridCallbacks.handlers.GetRowNodeId) {
             //console.log("Wrapping GetRowNodeId handler");
             gridOptions.getRowNodeId = function (data) {
@@ -61,6 +61,15 @@ window.blazor_ag_grid = {
                 var id = gridCallbacks.handlers.GetRowNodeId.jsRef.invokeMethod("Invoke", data);
                 //console.log("gridOptions.getRowNodeId >>> [" + id + "]");
                 return id;
+            }
+        }
+        if (gridCallbacks.handlers.GetDataPath) {
+            //console.log("Wrapping GetDataPath handler");
+            gridOptions.getDataPath = function (data) {
+                //console.log("gridOptions.getDataPath <<< " + JSON.stringify(data));
+                var path = gridCallbacks.handlers.GetDataPath.jsRef.invokeMethod("Invoke", data);
+                //console.log("gridOptions.getDataPath >>> [" + path + "]");
+                return path;
             }
         }
     }
