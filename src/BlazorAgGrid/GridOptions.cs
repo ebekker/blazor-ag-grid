@@ -76,6 +76,10 @@ namespace BlazorAgGrid
         public bool? SuppressCellSelection { get; set; }
         /// Set to true to enable Range Selection.
         public bool? EnableRangeSelection { get; set; }
+
+        /// Enables Tree Data:
+        ///   https://www.ag-grid.com/javascript-grid-tree-data/
+        public bool? TreeData { get; set; }
     }
 
     [JsonConverter(typeof(EnumConverter))]

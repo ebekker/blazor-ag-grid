@@ -1,0 +1,89 @@
+﻿@page "/fetchdata-treememoryds"
+@inject HttpClient Http
+
+<h1>Weather forecast</h1>
+
+<p>This component demonstrates local (in-memory) tree data.</p>
+
+@if (gridOpts == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <AgGrid WidthStyle="100%" HeightStyle="300px"
+            Options="gridOpts" Callbacks="gridCb">
+        <GridColumn IsResizable="true" Header="Job Title" Field="jobTitle" />
+        <GridColumn IsResizable="true" Header="Employment Type" Field="employmentType" />
+    </AgGrid>
+}
+
+@code {
+    private GridOptions gridOpts;
+    private GridCallbacks gridCb;
+
+    protected override void OnInitialized()
+    {
+        gridOpts = new GridOptions
+        {
+            EnableRowDeselection = true,
+            SuppressCellSelection = true,
+
+            TreeData = true,
+
+            // TreeData seems to be incompatible with the Infinite row
+            // model so we only support in-memory, up-front row data
+            //RowModelType = RowModelType.Infinite,
+            Datasource = new EmployeeHierarchyDataSource { Http = Http },
+            RowModelType = RowModelType.ClientSide,
+            RowData = EmployeeHierarchy.Employees,
+        };
+
+        gridCb = new GridCallbacks
+        {
+            GetDataPath = data =>
+            {
+                return data.GetProperty("orgHierarchy").EnumerateArray()
+                    .Select(arrayElement => arrayElement.GetString()).ToArray();
+            },
+        };
+    }
+
+    // TreeData seems incompatible with Inifinite row model, so no need for DataSource
+    class EmployeeHierarchyDataSource : IGridDatasource
+    {
+        public HttpClient Http { get; set; }
+
+        private Employee[] Employees { get; set; }
+
+        public async Task GetRows(IGetRowsParams getParams)
+        {
+            try
+            {
+                if (Employees == null)
+                    Employees = EmployeeHierarchy.Employees;
+
+                var page = Employees
+                    .Skip(getParams.StartRow)
+                    .Take(getParams.EndRow - getParams.StartRow);
+
+                var block = page.ToArray();
+                Console.WriteLine("From {0}:{1}, got {2} row(s)",
+                    getParams.StartRow, getParams.EndRow, block.Length);
+                await getParams.SuccessCallback(block, block.Length);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Failed to retrieve!");
+                Console.WriteLine(ex.ToString());
+                await getParams.FailCallback();
+            }
+        }
+
+        public Task Destroy()
+        {
+            // Nothing to do
+            return Task.CompletedTask;
+        }
+    }
+}
