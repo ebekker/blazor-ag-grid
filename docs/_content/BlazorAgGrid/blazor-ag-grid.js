@@ -81,6 +81,20 @@ window.blazor_ag_grid = {
                 blazor_ag_grid.gridOptions_onSelectionChanged(gridOptions, gridEvents);
             }
         }
+        if (gridEvents.handlers.CellValueChanged) {
+            console.log("Wrapping CellValueChanged handler");
+            gridOptions.onCellValueChanged = function (data) {
+                var ev = {
+                    rowNodeId: data.node.id,
+                    field: data.colDef.field,
+                    columnId: data.column.colId,
+                    rowIndex: data.rowIndex,
+                    oldValue: data.oldValue,
+                    newValue: data.value,
+                };
+                var id = gridEvents.handlers.CellValueChanged.jsRef.invokeMethodAsync("Invoke", ev);
+            }
+        }
     }
     , gridOptions_callGridApi: function (callbackId, name, args) {
         //console.log("getting gridOptions for [" + callbackId + "]");
