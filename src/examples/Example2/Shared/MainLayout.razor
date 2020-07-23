@@ -9,7 +9,8 @@
         <div style="float: left;">
             Mode: <b>@MyApp.CurrentMode</b> <a href="#" @onclick="MyApp.ToggleMode">(toggle)</a>
         </div>
-        <a href="https://github.com/ebekker/blazor-ag-grid" target="_blank" class="ml-md-auto">About BlazorAgGrid</a>
+        <a href="https://github.com/ebekker/blazor-ag-grid" target="_blank"
+           class="ml-md-auto">About BlazorAgGrid (v@(Version))</a>
     </div>
 
     <div class="content px-4">
@@ -19,4 +20,10 @@
 
 @code {
     [CascadingParameter] public App MyApp { get; set; }
+
+    static string Version;
+    static MainLayout()
+    {
+        Version = typeof(AgGrid).Assembly.GetName().Version.ToString();
+    }
 }
