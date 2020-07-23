@@ -15,6 +15,7 @@ namespace BlazorAgGrid
         [Parameter] public bool IsResizable { get; set; }
         [Parameter] public bool IsSortable { get; set; }
         [Parameter] public bool IsFiltered { get; set; }
+        [Parameter] public bool IsEditable { get; set; }
 
         protected override void OnInitialized()
         {
@@ -25,7 +26,8 @@ namespace BlazorAgGrid
                 IsResizable = IsResizable,
                 IsSortable = IsSortable,
                 IsFiltered = IsFiltered,
-            });
+                IsEditable = IsEditable,
+            }); ;
         }
     }
 }

@@ -77,6 +77,9 @@ namespace BlazorAgGrid
         /// Set to true to enable Range Selection.
         public bool? EnableRangeSelection { get; set; }
 
+        [JsonPropertyName("editType")]
+        public EditType? EditType { get; set; }
+
         /// Enables Tree Data:
         ///   https://www.ag-grid.com/javascript-grid-tree-data/
         public bool? TreeData { get; set; }
@@ -94,6 +97,12 @@ namespace BlazorAgGrid
     {
         Single = 0,
         Multiple = 1,
+    }
+
+    [JsonConverter(typeof(EnumConverter))]
+    public enum EditType
+    {
+        FullRow = 1,
     }
 
     internal class EnumConverter : JsonConverterFactory
