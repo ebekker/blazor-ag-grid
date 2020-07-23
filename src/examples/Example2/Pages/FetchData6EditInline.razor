@@ -1,0 +1,92 @@
+﻿@page "/fetchdata-edit"
+@inject NavigationManager Nav
+
+<h1>Inline Edit</h1>
+
+<p>This component demonstrates inline editing of local (in-memory) data.</p>
+
+@if (gridOpts == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div>
+        <input type="checkbox" checked="@fullRowEdit" @onchange="ToggleFullRowEdit" /> Full Row Edit (toggling will RELOAD page)
+    </div>
+    <AgGrid WidthStyle="100%" HeightStyle="300px"
+            Options="gridOpts" Callbacks="gridCb" Events="gridEv">
+        <GridColumn IsResizable="true" IsEditable="true" Field="firstName" />
+        <GridColumn IsResizable="true" IsEditable="true" Field="lastName" />
+        <GridColumn IsResizable="true" IsEditable="true" Field="gender" />
+        <GridColumn IsResizable="true" IsEditable="true" Field="age" />
+        <GridColumn IsResizable="true" IsEditable="true" Field="address" />
+        <GridColumn IsResizable="true" IsEditable="true" Field="mood" />
+        <GridColumn IsResizable="true" IsEditable="true" Field="country" />
+        <GridColumn IsResizable="true" IsEditable="true" Field="lastName" Header="Dup Last Name" />
+    </AgGrid>
+
+    <div>
+        <label>Last Edit (look at the browser console for multiple messages):</label>
+        <input @bind="@lastEdit" style="width: 100%" readonly />
+    </div>    
+}
+
+@code {
+    private GridOptions gridOpts;
+    private GridCallbacks gridCb;
+    private GridEvents gridEv;
+    private bool fullRowEdit;
+    private string lastEdit;
+
+    protected override void OnInitialized()
+    {
+        fullRowEdit = GetFullRowEdit();
+
+        gridOpts = new GridOptions
+        {
+            EnableRowDeselection = true,
+            SuppressCellSelection = true,
+
+            RowModelType = RowModelType.ClientSide,
+            RowData = EditSampleData.Sample,
+
+            EditType = fullRowEdit ? EditType.FullRow : (EditType?)null,
+        };
+
+        int id = 0;
+        gridCb = new GridCallbacks
+        {
+            // Register a custom Row ID resolver to see how it
+            // gets returned to us in the cellValueChanged event
+            GetRowNodeId = json =>
+                $"{json.GetProperty("firstName").GetString()}.{json.GetProperty("lastName").GetString()}.{id++}",
+        };
+
+        gridEv = new GridEvents
+        {
+            CellValueChanged = dtl =>
+            {
+                lastEdit = $"{DateTime.Now} - CellValueChanged: "
+                    + System.Text.Json.JsonSerializer.Serialize(dtl);
+                Console.WriteLine(lastEdit);
+                StateHasChanged();
+            },
+        };
+    }
+
+    bool GetFullRowEdit()
+    {
+        var uri = new Uri(Nav.Uri);
+        var qry = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
+        return qry.TryGetValue(nameof(fullRowEdit), out var val) && bool.TrueString == val;
+    }
+
+    void ToggleFullRowEdit()
+    {
+        fullRowEdit = !fullRowEdit;
+        var ub = new UriBuilder(Nav.Uri);
+        ub.Query = $"{nameof(fullRowEdit)}={fullRowEdit}";
+        Nav.NavigateTo(ub.ToString(), true);
+    }
+}

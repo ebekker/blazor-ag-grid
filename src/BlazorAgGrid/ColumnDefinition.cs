@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace BlazorAgGrid
@@ -9,7 +10,7 @@ namespace BlazorAgGrid
     /// Strongly-typed representation of:
     ///   https://www.ag-grid.com/javascript-grid-column-properties/
     /// </summary>
-    public class ColumnDefinition
+    public partial class ColumnDefinition
     {
         public string Field { get; set; }
 
@@ -23,5 +24,8 @@ namespace BlazorAgGrid
 
         [JsonPropertyName("filter")]
         public bool IsFiltered { get; set; }
+
+        [JsonPropertyName("editable")]
+        public bool IsEditable { get; set; }
     }
 }
