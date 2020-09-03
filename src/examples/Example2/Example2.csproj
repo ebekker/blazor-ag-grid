@@ -25,6 +25,10 @@
     <GHPagesFiles Include="$(PublishDir)/wwwroot/**/*.*" />
   </ItemGroup>
 
+  <!-- This should only be done with the 'Release' config because of:
+     -    https://github.com/dotnet/aspnetcore/issues/19907
+     -    https://github.com/dotnet/aspnetcore/issues/19796
+    -->
   <Target Name="PublishGHPages"  AfterTargets="AfterPublish">
     <Message Importance="high" Text="Publishing output from [$(PublishDir)] to GH Pages directory." />
     <Copy SourceFiles="@(GHPagesFiles)"
