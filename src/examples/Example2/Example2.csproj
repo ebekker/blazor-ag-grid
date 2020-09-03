@@ -39,6 +39,8 @@
     </PropertyGroup>
     <WriteLinesToFile File="$(GHPagesRoot)/.nojekyll" Lines="$(NoJekyll)"
                       Overwrite="true" />
+    <WriteLinesToFile File="$(GHPagesRoot)/.gitattributes" Lines="* binary"
+                      Overwrite="true" />
     <Message Importance="high" Text="GH Pages published to [$(GHPagesRoot)]" />
   </Target>
 
