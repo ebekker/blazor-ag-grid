@@ -18,6 +18,22 @@
     <button class="btn btn-primary" @onclick="PurgeRows">Purge Rows</button>
 </div>
 
+<div style="margin: 15px 0;">
+    <div class="form-group row">
+        <div class="col">
+            <input @bind="@search" id="search" class="form-control" placeholder="Search..."
+                   @bind:event="oninput" />
+        </div>
+        <div class="col">
+            <button class="btn btn-primary" @onclick="async () => await UpdateSearch()"
+                    disabled="@(search == dataSource.Search)">Search</button>
+            <button class="btn btn-secondary" @onclick="async () => await UpdateSearch(string.Empty)"
+                    disabled="@(string.IsNullOrWhiteSpace(search))" >Clear</button>
+        </div>
+    </div>
+</div>
+
+
 @if (photoOp == null)
 {
     <p><em>Loading...</em></p>
@@ -36,15 +52,18 @@ else
 
 @code {
     private AgGrid photoGrid;
+    private PhotosDataSource dataSource;
     private GridOptions photoOp;
     private GridEvents photoEv;
     private GridCallbacks photoCb;
+    private string search = string.Empty;
 
     protected override void OnInitialized()
     {
+        dataSource = new PhotosDataSource { Http = Http };
         photoOp = new GridOptions
         {
-            Datasource = new PhotosDataSource { Http = Http },
+            Datasource = dataSource,
             EnablePagination = true,
             EnableRowDeselection = true,
             RowModelType = RowModelType.Infinite,
@@ -105,6 +124,14 @@ else
         await photoGrid.Api.PurgeInfiniteCache();
     }
 
+    private async Task UpdateSearch(string newSearch = null)
+    {
+        if (newSearch != null)
+            search = newSearch;
+        dataSource.Search = search;
+        await photoGrid.Api.PurgeInfiniteCache();
+    }
+
     class Photo
     {
         // Sample:
@@ -125,6 +152,8 @@ else
     {
         public HttpClient Http { get; set; }
 
+        public string Search { get; set; } = string.Empty;
+
         public async Task GetRows(IGetRowsParams getParams)
         {
             try
@@ -142,7 +171,10 @@ else
                     url += $"&_order={string.Join(",", getParams.SortModel.Select(sm => sm.Direction))}";
                 }
 
-                // TODO: FILTER
+                if (!string.IsNullOrWhiteSpace(Search))
+                {
+                    url += $"&q={Uri.EscapeUriString(Search)}";
+                }
 
                 Console.WriteLine("Fetching from [{0}]", url);
                 var resp = await Http.GetAsync(url);
