@@ -23,9 +23,9 @@ jobs:
         uses: actions/checkout@v1
 
       - name: setup dotnet core sdk
-        uses: actions/setup-dotnet@v1.4.0
+        uses: actions/setup-dotnet@v1
         with:
-          dotnet-version: '3.1.*'
+          dotnet-version: 3.1.*
 
       - name: extract version base
         id: extract_version_base
