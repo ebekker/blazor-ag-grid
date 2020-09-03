@@ -25,7 +25,7 @@ jobs:
       - name: setup dotnet core sdk
         uses: actions/setup-dotnet@v1.4.0
         with:
-          dotnet-version: '3.1.100'
+          dotnet-version: '3.1.*'
 
       - name: extract version base
         id: extract_version_base
