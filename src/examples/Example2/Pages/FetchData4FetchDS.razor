@@ -186,7 +186,7 @@ else
                     ? (int?)totalCountInt
                     : null;
 
-                var photos = await Http.GetJsonAsync<Photo[]>(url);
+                var photos = await Http.GetFromJsonAsync<Photo[]>(url);
                 Console.WriteLine("From [{0}:{1}], got [{2}] row(s) out of [{3}]",
                     getParams.StartRow, getParams.EndRow, photos.Length, totalCount);
 
