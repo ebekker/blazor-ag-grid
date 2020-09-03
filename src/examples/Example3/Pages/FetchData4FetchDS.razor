@@ -13,6 +13,21 @@
 <button class="btn btn-primary" @onclick="RefreshRows">Refresh Rows</button>
 <button class="btn btn-primary" @onclick="PurgeRows">Purge Rows</button>
 
+<div style="margin: 15px 0;">
+    <div class="form-group row">
+        <div class="col">
+            <input @bind="@search" id="search" class="form-control" placeholder="Search..."
+                   @bind:event="oninput" />
+        </div>
+        <div class="col">
+            <button class="btn btn-primary" @onclick="async () => await UpdateSearch()"
+                    disabled="@(search == dataSource.Search)">Search</button>
+            <button class="btn btn-secondary" @onclick="async () => await UpdateSearch(string.Empty)"
+                    disabled="@(string.IsNullOrWhiteSpace(search))" >Clear</button>
+        </div>
+    </div>
+</div>
+
 
 @if (photoOp == null)
 {
@@ -20,8 +35,6 @@
 }
 else
 {
-    <p>Render Count: @renderCount</p>
-
     <AgGrid @ref="photoGrid" WidthStyle="100%" HeightStyle="300px" Options="photoOp" Events="photoEv"
             ConfigureScript="example4_fetchData4_configure">
         <GridColumn IsResizable="true" IsSortable="true" Header="ID" Field="id" />
@@ -29,33 +42,27 @@ else
         <GridColumn IsResizable="true" IsSortable="true" Header="Title" Field="title" />
         <GridColumn IsResizable="true" IsSortable="true" Header="URL" Field="url" />
         <GridColumn IsResizable="true" IsSortable="true" Header="Thumbnail URL" Field="thumbnailUrl" />
-
-        @RenderCount()
     </AgGrid>
 }
 
 @code {
-    private int renderCount = 0;
-
     private AgGrid photoGrid;
+    private PhotosDataSource dataSource;
     private GridOptions photoOp;
     private GridEvents photoEv;
+    private string search = string.Empty;
 
     // In Blazor Server-side hosting model ag-Grid Callbacks CANNOT be used
     // because they have to execute synchronously and only asynchronous
     // invocation across JS/.NET runtimes is supported in Blazor Server-side
     //private GridCallbacks photoCb;
 
-    private int RenderCount()
-    {
-        return renderCount++;
-    }
-
     protected override void OnInitialized()
     {
+        dataSource =  new PhotosDataSource { HttpFactory = HttpFactory };
         photoOp = new GridOptions
         {
-            Datasource = new PhotosDataSource { HttpFactory = HttpFactory },
+            Datasource = dataSource,
             EnablePagination = true,
             EnableRowDeselection = true,
             RowModelType = RowModelType.Infinite,
@@ -116,6 +123,14 @@ else
         await photoGrid.Api.PurgeInfiniteCache();
     }
 
+    private async Task UpdateSearch(string newSearch = null)
+    {
+        if (newSearch != null)
+            search = newSearch;
+        dataSource.Search = search;
+        await photoGrid.Api.PurgeInfiniteCache();
+    }
+
     class Photo
     {
         // Sample:
@@ -135,6 +150,8 @@ else
     class PhotosDataSource : IGridDatasource
     {
         public IHttpClientFactory HttpFactory { get; set; }
+        public string Search { get; set; } = string.Empty;
+
 
         public async Task GetRows(IGetRowsParams getParams)
         {
@@ -153,7 +170,10 @@ else
                     url += $"&_order={string.Join(",", getParams.SortModel.Select(sm => sm.Direction))}";
                 }
 
-                // TODO: FILTER
+                if (!string.IsNullOrWhiteSpace(Search))
+                {
+                    url += $"&q={Uri.EscapeUriString(Search)}";
+                }
 
                 using var Http = HttpFactory.CreateClient();
 

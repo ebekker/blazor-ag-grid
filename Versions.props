@@ -5,7 +5,7 @@
              indicate the current version being worked on -->
         <VersionMajor>0</VersionMajor>
         <VersionMinor>5</VersionMinor>
-        <VersionPatch>2</VersionPatch>
+        <VersionPatch>3</VersionPatch>
         <!-- this should be overridden by CI automation -->
         <VersionBuild>0</VersionBuild>
 
