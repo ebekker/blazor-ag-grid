@@ -78,7 +78,7 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: download package from artifact
-        uses: actions/download-artifact@v1
+        uses: actions/download-artifact@v4.1.7
         with:
           name: package
 
@@ -107,7 +107,7 @@ jobs:
   #   runs-on: ubuntu-16.04
   #   steps:
   #     - name: download package from artifact
-  #       uses: actions/download-artifact@v1
+  #       uses: actions/download-artifact@v4.1.7
   #       with:
   #         name: package
 
@@ -140,7 +140,7 @@ jobs:
 #    runs-on: ubuntu-16.04
 #    steps:
 #      - name: download package from artifact
-#        uses: actions/download-artifact@v1
+#        uses: actions/download-artifact@v4.1.7
 #        with:
 #          name: package
 #
